@@ -10,42 +10,64 @@ class MPRISDBusController:
     def __init__(self, bus_app: str = "spotify") -> None:
         DBusGMainLoop(set_as_default=True)
         self.bus = dbus.SessionBus()
-        self.bus_name = bus_app
+        self.bus_app = bus_app
         self.proxy = None
         self.interface = None
         self.properties = None
-        self.set_bus_app(bus_app)
+        if self.is_current_bus_app_available():
+            self.activate_current_bus_app()
 
     # Bus Connection
-    def get_bus_apps(self) -> list[str]:
+    def _get_available_bus_names(self) -> list[str]:
         """Get a list of available media player bus names"""
         try:
             proxy = self.bus.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus")
             interface = dbus.Interface(proxy, "org.freedesktop.DBus")
             services = interface.ListNames()
-            names = [s.split(".")[-1] for s in services if s.startswith("org.mpris.MediaPlayer2.")]
+            names = [s for s in services if s.startswith("org.mpris.MediaPlayer2.")]
             return [name for name in names if not (name.startswith(":") or "instance" in name)]
         except Exception as e:
             print(f"Error getting available media players: {e}")
             return []
 
-    def get_bus_app(self) -> str:
-        """Get the bus name of the media player"""
-        return self.bus_name
+    def get_available_bus_apps(self) -> list[str]:
+        """Get a list of available media player bus apps"""
+        return [name.split(".")[-1] for name in self._get_available_bus_names()]
 
-    def set_bus_app(self, bus_app: str) -> None:
+    def get_current_bus_app(self) -> str:
+        """Get the bus app of the media player"""
+        return self.bus_app
+
+    def activate_bus_app(self, bus_app: str) -> None:
         """Set the bus name of the media player"""
         try:
-            self.bus_name = f"org.mpris.MediaPlayer2.{bus_app}"
-            self.proxy = self.bus.get_object(self.bus_name, "/org/mpris/MediaPlayer2")
+            self.proxy = self.bus.get_object(f"org.mpris.MediaPlayer2.{self.bus_app}", "/org/mpris/MediaPlayer2")
             self.interface = dbus.Interface(self.proxy, INTERFACE)
             self.properties = dbus.Interface(self.proxy, "org.freedesktop.DBus.Properties")
         except Exception as e:
             print(f"Error connecting to media player '{bus_app}': {e}")
 
-    def has_active_player(self) -> bool:
-        """Check if the media player is active"""
-        return self.proxy is not None
+    def is_bus_app_available(self, app: str) -> bool:
+        """Check if the media player is available"""
+        return app in self.get_available_bus_apps()
+
+    def is_current_bus_app_available(self) -> bool:
+        """Check if the current media player is available"""
+        return self.is_bus_app_available(self.bus_app)
+
+    def is_current_bus_app_active(self) -> bool:
+        """Check if the current media player is active"""
+        return self.is_current_bus_app_available() and self.proxy is not None
+
+    def activate_current_bus_app(self) -> None:
+        """Activate the current media player"""
+        self.activate_bus_app(self.bus_app)
+
+    def deactivate_bus_app(self) -> None:
+        """Deactivate the current media player"""
+        self.proxy = None
+        self.interface = None
+        self.properties = None
 
     # Playback Controls
     def play(self) -> None:

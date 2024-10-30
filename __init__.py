@@ -37,8 +37,6 @@ ICONS = {
     "error": "xdg:dialog-error-symbolic",
 }
 
-controller = MPRISDBusController(DEFAULT_BUS_NAME)
-
 
 class Plugin(PluginInstance, TriggerQueryHandler):
     def __init__(self) -> None:
@@ -50,82 +48,83 @@ class Plugin(PluginInstance, TriggerQueryHandler):
             description=md_description,
             defaultTrigger=DEFAULT_TRIGGER,
         )
+        self.controller = MPRISDBusController(DEFAULT_BUS_NAME)
 
     def create_commands(self) -> dict[str, tuple[str, str, Any, List[str]]]:
         return {
             "info": (
-                f"{controller.get_title()}",
-                f"{controller.get_album_artist()} / {controller.get_album()}",
-                None,
-                [controller.get_art_url(), ICONS["generic"]],
+                f"{self.controller.get_title()}",
+                f"{self.controller.get_album_artist()} / {self.controller.get_album()}",
+                lambda: None,
+                [self.controller.get_art_url(), ICONS["generic"]],
             ),
             "play": (
                 "Play",
                 "Play current track",
-                lambda: controller.play(),
+                lambda: self.controller.play(),
                 [ICONS["play"]],
             ),
             "pause": (
                 "Pause",
                 "Pause current track",
-                lambda: controller.pause(),
+                lambda: self.controller.pause(),
                 [ICONS["pause"]],
             ),
             "next": (
                 "Next",
                 "Go to next track",
-                lambda: controller.next_track(),
+                lambda: self.controller.next_track(),
                 [ICONS["next"]],
             ),
             "prev": (
                 "Previous",
                 "Go to previous track",
-                lambda: controller.previous_track(),
+                lambda: self.controller.previous_track(),
                 [ICONS["previous"]],
             ),
             "shuffle": (
                 "Shuffle",
-                f"Toggle shuffle mode ({controller.get_shuffle()})",
-                lambda: controller.set_shuffle(controller.get_shuffle() is False),
+                f"Toggle shuffle mode ({self.controller.get_shuffle()})",
+                lambda: self.controller.set_shuffle(self.controller.get_shuffle() is False),
                 [ICONS["shuffle"]],
             ),
             "loop": (
                 "Loop",
-                f"Cycle loop mode ({controller.get_loop()})",
-                lambda: controller.cycle_loop(),
+                f"Cycle loop mode ({self.controller.get_loop()})",
+                lambda: self.controller.cycle_loop(),
                 [ICONS["loop"]],
             ),
             "goto": (
                 "GoTo",
-                f"Go to specific position MM:SS ({controller.get_position_str()})",
-                None,
+                f"Go to specific position MM:SS ({self.controller.get_position_str()})",
+                lambda: None,
                 [ICONS["goto"]],
             ),
             "switch": (
                 "Switch",
-                f"Switch to another media player ({controller.get_bus_app()})",
-                None,
+                f"Switch to another media player ({self.controller.get_current_bus_app()})",
+                lambda: None,
                 [ICONS["switch"]],
             ),
             # "toggle": (
             #     "Toggle",
-            #     f"Toggle Play/Pause ({controller.get_playback_status()})",
-            #     lambda: controller.play_pause(),
+            #     f"Toggle Play/Pause ({self.controller.get_playback_status()})",
+            #     lambda: self.controller.play_pause(),
             #     [ICONS["play"]],
             # ),
             # "stop": (
             #     "Stop",
             #     "Stop playback",
-            #     lambda: controller.stop(),
+            #     lambda: self.controller.stop(),
             #     [ICONS["play"]],
             # ),
         }
 
-    def create_player_not_running_item(self) -> None:
-        StandardItem(
+    def create_player_not_running_item(self) -> StandardItem:
+        return StandardItem(
             id=md_name,
-            text=f"MEDIA PLAYER NOT RUNNING: {controller.get_bus_app()}",
-            subtext=f"Please (re)start '{controller.get_bus_app()}' first",
+            text=f"MEDIA PLAYER NOT RUNNING: {self.controller.get_current_bus_app()}",
+            subtext=f"Please (re)start '{self.controller.get_current_bus_app()}' first",
             iconUrls=[ICONS["error"]],
         )
 
@@ -144,36 +143,45 @@ class Plugin(PluginInstance, TriggerQueryHandler):
             text=f"{player}",
             subtext=f"Switch media player to '{player}'",
             iconUrls=[ICONS["generic"]],
-            actions=[Action("Switch", f"{player}", lambda p=player: controller.set_bus_app(p))],
+            actions=[Action("Switch", f"{player}", lambda p=player: self.controller.activate_bus_app(p))],
         )
 
     def create_goto_item(self, maybe_pos: Optional[str]) -> StandardItem:
         pos = "00:00" if maybe_pos is None else maybe_pos
-        curr_pos = controller.get_position_str()
+        curr_pos = self.controller.get_position_str()
         return StandardItem(
             id=f"{md_name}_goto",
             text=f"Go to {pos}",
             subtext=f"Go to '{curr_pos}' -> '{pos}'",
             iconUrls=[ICONS["goto"]],
-            actions=[Action("GoTo", f"{pos}", lambda p=pos: controller.set_position_str(p))],
+            actions=[Action("GoTo", f"{pos}", lambda p=pos: self.controller.set_position_str(p))],
         )
 
     def handleTriggerQuery(self, query):
         items = []
-        commands = self.create_commands()
-        if controller.has_active_player() is False:
-            items.append(self.create_player_not_running_item())
-            commands = {k: commands[k] for k in ["switch"]}
+        commands = {}
+
+        if self.controller.is_current_bus_app_active():
+            commands = self.create_commands()
+        else:
+            if self.controller.is_current_bus_app_available():
+                self.controller.activate_current_bus_app()
+                commands = self.create_commands()
+            else:
+                self.controller.deactivate_bus_app()
+                items.append(self.create_player_not_running_item())
+                commands = self.create_commands()
+                commands = {k: commands[k] for k in ["switch"]}
 
         args = query.string.lower().strip().split(" ")
         command = args[0] if len(args) > 0 else None
-        if command is None:
+        if command is None or command == "":
             # Show all commands
             for cmd, (text, subtext, func, icons) in commands.items():
                 items.append(self.create_command_item(cmd, text, subtext, func, icons))
         else:
             if command == "switch":
-                apps = controller.get_bus_apps()
+                apps = self.controller.get_available_bus_apps()
                 app_name = args[1] if len(args) > 1 else None
                 if app_name is None:
                     # List all players
