@@ -53,7 +53,7 @@ class Plugin(PluginInstance, TriggerQueryHandler):
     def create_commands(self) -> dict[str, tuple[str, str, Any, List[str]]]:
         return {
             "info": (
-                f"{self.controller.get_title()}",
+                f"{self.controller.get_playback_status()} | {self.controller.get_title()}",
                 f"{self.controller.get_album_artist()} / {self.controller.get_album()}",
                 lambda: None,
                 [self.controller.get_art_url(), ICONS["generic"]],
