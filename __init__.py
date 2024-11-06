@@ -55,7 +55,7 @@ class Plugin(PluginInstance, TriggerQueryHandler):
             "info": (
                 f"{self.controller.get_playback_status()} | {self.controller.get_title()}",
                 f"{self.controller.get_album_artist()} / {self.controller.get_album()}",
-                lambda: None,
+                lambda: self.controller.play_pause(),
                 [self.controller.get_art_url(), ICONS["generic"]],
             ),
             "play": (
