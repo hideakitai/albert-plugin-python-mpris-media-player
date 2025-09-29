@@ -15,10 +15,11 @@ md_version = "1.0"
 md_name = "MPRIS Media Player"
 md_description = "Python plugin to control media players via MPRIS"
 md_license = "MIT"
-md_url = "https://github.com/hideakitai/albert-mpris-media-player"
-md_authors = "@hideakitai"
+md_url = "https://github.com/hideakitai/albert-plugin-python-mpris-media-player"
+md_authors = ["@hideakitai"]
 # md_bin_dependencies = []
 md_lib_dependencies = ["dbus-python"]
+# md_platforms = ["linux"]
 
 DEFAULT_TRIGGER = "mp "
 DEFAULT_BUS_NAME = "spotify"
