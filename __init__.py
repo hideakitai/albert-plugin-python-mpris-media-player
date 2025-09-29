@@ -10,15 +10,16 @@ if plugin_dir not in sys.path:
     sys.path.append(plugin_dir)
 from mpris_dbus_controller import MPRISDBusController
 
-md_iid = "2.3"
-md_version = "1.0"
+md_iid = "3.1"
+md_version = "1.1"
 md_name = "MPRIS Media Player"
 md_description = "Python plugin to control media players via MPRIS"
 md_license = "MIT"
-md_url = "https://github.com/hideakitai/albert-mpris-media-player"
-md_authors = "@hideakitai"
+md_url = "https://github.com/hideakitai/albert-plugin-python-mpris-media-player"
+md_authors = ["@hideakitai"]
 # md_bin_dependencies = []
 md_lib_dependencies = ["dbus-python"]
+# md_platforms = ["linux"]
 
 DEFAULT_TRIGGER = "mp "
 DEFAULT_BUS_NAME = "spotify"
@@ -41,14 +42,20 @@ ICONS = {
 class Plugin(PluginInstance, TriggerQueryHandler):
     def __init__(self) -> None:
         PluginInstance.__init__(self)
-        TriggerQueryHandler.__init__(
-            self,
-            id=md_name,
-            name=md_name,
-            description=md_description,
-            defaultTrigger=DEFAULT_TRIGGER,
-        )
+        TriggerQueryHandler.__init__(self)
         self.controller = MPRISDBusController(DEFAULT_BUS_NAME)
+
+    def id(self) -> str:
+        return md_name
+
+    def name(self) -> str:
+        return md_name
+
+    def description(self) -> str:
+        return md_description
+
+    def defaultTrigger(self) -> str:
+        return DEFAULT_TRIGGER
 
     def create_commands(self) -> dict[str, tuple[str, str, Any, List[str]]]:
         return {

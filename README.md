@@ -1,4 +1,4 @@
-# albert-media-player
+# albert-plugin-python-mpris-media-player
 
 [Albert](https://albertlauncher.github.io/) Python plugin to control media players (spotify, mpv, vlc, browsers, etc.) via [MPRIS](https://specifications.freedesktop.org/mpris-spec/latest/fullindex.html)
 

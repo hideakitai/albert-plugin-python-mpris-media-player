@@ -1,0 +1,3 @@
+[environment]
+python = "../../venv"
+extra-paths = ["./typings"]
