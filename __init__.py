@@ -2,7 +2,14 @@ import os
 import sys
 from typing import Any, List, Optional
 
-from albert import Action, PluginInstance, StandardItem, TriggerQueryHandler
+from albert import Action, Icon, PluginInstance, StandardIconType, StandardItem, TriggerQueryHandler, makeStandardIcon
+
+
+# TODO: albert::iconFromUrls() is not exported in Python API v4.0, so use stub now.
+# TODO: Replace it if albert.iconFromUrls is available in future.
+def iconFromUrls(_urls: List[str]) -> Icon:
+    return makeStandardIcon(StandardIconType.FileIcon)
+
 
 # NOTE: workaround for importing local module in albert
 plugin_dir = os.path.dirname(__file__)
@@ -10,7 +17,7 @@ if plugin_dir not in sys.path:
     sys.path.append(plugin_dir)
 from mpris_dbus_controller import MPRISDBusController
 
-md_iid = "3.1"
+md_iid = "4.0"
 md_version = "1.1"
 md_name = "MPRIS Media Player"
 md_description = "Python plugin to control media players via MPRIS"
@@ -132,7 +139,7 @@ class Plugin(PluginInstance, TriggerQueryHandler):
             id=md_name,
             text=f"MEDIA PLAYER NOT RUNNING: {self.controller.get_current_bus_app()}",
             subtext=f"Please (re)start '{self.controller.get_current_bus_app()}' first",
-            iconUrls=[ICONS["error"]],
+            icon_factory=lambda: iconFromUrls([ICONS["error"]]),
         )
 
     def create_command_item(self, cmd, text, subtext, func, icons) -> StandardItem:
@@ -140,7 +147,7 @@ class Plugin(PluginInstance, TriggerQueryHandler):
             id=f"{md_name}_{cmd}",
             text=text,
             subtext=f"{subtext}",
-            iconUrls=icons,
+            icon_factory=lambda: iconFromUrls(icons),
             actions=[Action("Execute", text, func)],
         )
 
@@ -149,7 +156,7 @@ class Plugin(PluginInstance, TriggerQueryHandler):
             id=f"{md_name}_{player}",
             text=f"{player}",
             subtext=f"Switch media player to '{player}'",
-            iconUrls=[ICONS["generic"]],
+            icon_factory=lambda: iconFromUrls([ICONS["generic"]]),
             actions=[Action("Switch", f"{player}", lambda p=player: self.controller.activate_bus_app(p))],
         )
 
@@ -160,7 +167,7 @@ class Plugin(PluginInstance, TriggerQueryHandler):
             id=f"{md_name}_goto",
             text=f"Go to {pos}",
             subtext=f"Go to '{curr_pos}' -> '{pos}'",
-            iconUrls=[ICONS["goto"]],
+            icon_factory=lambda: iconFromUrls([ICONS["goto"]]),
             actions=[Action("GoTo", f"{pos}", lambda p=pos: self.controller.set_position_str(p))],
         )
 
