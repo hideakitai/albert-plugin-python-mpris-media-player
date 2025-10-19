@@ -3,7 +3,7 @@
 .. https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
 
 ====================================================================================================
-Albert Python interface v3.1
+Albert Python interface v4.0
 ====================================================================================================
 
 To be a valid Python plugin a Python module has to contain at least the mandatory metadata fields
@@ -65,10 +65,36 @@ Optional metadata variables
 Changelog
 ====================================================================================================
 
+- ``v4.0``
+
+  - Add built-in icon factories and related types:
+    - Add class ``Brush``
+    - Add class ``Color``
+    - Add class ``Icon``
+    - Add enum ``StandardIconType``
+    - Add function ``makeImageIcon(str|Path)``
+    - Add function ``makeFileTypeIcon(str|Path)``
+    - Add function ``makeStandardIcon(StandardIconType)``
+    - Add function ``makeThemeIcon(str)``
+    - Add function ``makeGraphemeIcon(str, float, Color)``
+    - Add function ``makeIconifiedIcon(Icon, Color, float, int, Color)``
+    - Add function ``makeComposedIcon(Icon, Icon, float, float, float, float, float, float)``
+  - ``Item``
+    - Remove abstract method ``Item.iconUrls(self) -> List[str]``
+    - Add abstract method ``Item.icon(self) -> Icon``
+  - ``StandardItem``
+    - Remove property ``iconUrls``
+    - Add property ``icon_factory``
+    - Rename property  ``inputActionText`` to ``input_action_text``
+  - ``RankItem``
+    - Remove property access
+  - ``IndexItem``
+    - Remove property access
+
 - ``v3.1``
 
-    - Add metadata field ``md_readme_url``.
-    - Add metadata field ``md_maintainers``.
+  - Add metadata field ``md_readme_url``.
+  - Add metadata field ``md_maintainers``.
 
 - ``v3.0``
 
@@ -172,17 +198,13 @@ Changelog
 """
 
 from abc import abstractmethod, ABC
-from typing import Any
-from typing import Callable
-from typing import List
-from typing import Optional
-from typing import overload
+from enum import Enum
 from pathlib import Path
+from typing import Any, Callable, List, overload, final
 
 class PluginInstance(ABC):
     """
-    See also:
-        `PluginInstance C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1PluginInstance.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1PluginInstance.html>`_
     """
 
     def id(self) -> str:
@@ -218,20 +240,20 @@ class PluginInstance(ABC):
     def extensions(self) -> List[Extension]:
         """
         Returns the extensions of this plugin. You are responsible to keep the extensions alive for
-        the lifetime of this plugin. The base class implementation returns ``self`` if the plugin
+        the lifetime of this plugin. The base class implementation returns **self** if the plugin
         is an instance of ``Extension``, otherwise an empty list.
         """
 
     def readConfig(self, key: str, type: type[str|int|float|bool]) -> str|int|float|bool|None:
         """
-        Returns the config value for ``key`` from the Albert settings or ``None`` if the value does
+        Returns the config value for **key** from the Albert settings or ``None`` if the value does
         notexist or errors occurred. Due to limitations of QSettings on some platforms the type may
-        be lost, therefore the ``type`` has to be passed.
+        be lost, therefore the **type** has to be passed.
         """
 
     def writeConfig(self, key: str, value: str|int|float|bool):
         """
-        Writes ``value`` to ``key`` in the Albert settings.
+        Writes **value** to **key** in the Albert settings.
         """
 
     def configWidget(self) -> List[dict]:
@@ -303,8 +325,7 @@ class PluginInstance(ABC):
 
 class Action:
     """
-    See also:
-        `Action C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Action.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Action.html>`_
     """
 
     def __init__(self,
@@ -314,10 +335,171 @@ class Action:
         ...
 
 
+class Icon(ABC):
+    pass
+
+
+def makeImageIcon(path: str | Path) -> Icon:
+    """
+    Returns an icon from an image file at **path**.
+    """
+
+
+def makeFileTypeIcon(path: str | Path) -> Icon:
+    """
+    Returns an icon representing the file type of the file at **path**.
+    """
+
+
+class StandardIconType(Enum):
+    TitleBarMenuButton = ...,
+    TitleBarMinButton = ...,
+    TitleBarMaxButton = ...,
+    TitleBarCloseButton = ...,
+    TitleBarNormalButton = ...,
+    TitleBarShadeButton = ...,
+    TitleBarUnshadeButton = ...,
+    TitleBarContextHelpButton = ...,
+    DockWidgetCloseButton = ...,
+    MessageBoxInformation = ...,
+    MessageBoxWarning = ...,
+    MessageBoxCritical = ...,
+    MessageBoxQuestion = ...,
+    DesktopIcon = ...,
+    TrashIcon = ...,
+    ComputerIcon = ...,
+    DriveFDIcon = ...,
+    DriveHDIcon = ...,
+    DriveCDIcon = ...,
+    DriveDVDIcon = ...,
+    DriveNetIcon = ...,
+    DirOpenIcon = ...,
+    DirClosedIcon = ...,
+    DirLinkIcon = ...,
+    DirLinkOpenIcon = ...,
+    FileIcon = ...,
+    FileLinkIcon = ...,
+    ToolBarHorizontalExtensionButton = ...,
+    ToolBarVerticalExtensionButton = ...,
+    FileDialogStart = ...,
+    FileDialogEnd = ...,
+    FileDialogToParent = ...,
+    FileDialogNewFolder = ...,
+    FileDialogDetailedView = ...,
+    FileDialogInfoView = ...,
+    FileDialogContentsView = ...,
+    FileDialogListView = ...,
+    FileDialogBack = ...,
+    DirIcon = ...,
+    DialogOkButton = ...,
+    DialogCancelButton = ...,
+    DialogHelpButton = ...,
+    DialogOpenButton = ...,
+    DialogSaveButton = ...,
+    DialogCloseButton = ...,
+    DialogApplyButton = ...,
+    DialogResetButton = ...,
+    DialogDiscardButton = ...,
+    DialogYesButton = ...,
+    DialogNoButton = ...,
+    ArrowUp = ...,
+    ArrowDown = ...,
+    ArrowLeft = ...,
+    ArrowRight = ...,
+    ArrowBack = ...,
+    ArrowForward = ...,
+    DirHomeIcon = ...,
+    CommandLink = ...,
+    VistaShield = ...,
+    BrowserReload = ...,
+    BrowserStop = ...,
+    MediaPlay = ...,
+    MediaStop = ...,
+    MediaPause = ...,
+    MediaSkipForward = ...,
+    MediaSkipBackward = ...,
+    MediaSeekForward = ...,
+    MediaSeekBackward = ...,
+    MediaVolume = ...,
+    MediaVolumeMuted = ...,
+    LineEditClearButton = ...,
+    DialogYesToAllButton = ...,
+    DialogNoToAllButton = ...,
+    DialogSaveAllButton = ...,
+    DialogAbortButton = ...,
+    DialogRetryButton = ...,
+    DialogIgnoreButton = ...,
+    RestoreDefaultsButton = ...,
+    TabCloseButtom = ...
+
+
+def makeStandardIcon(type: StandardIconType) -> Icon:
+    """
+    Returns a standard icon for the given **type**.
+    """
+
+
+def makeThemeIcon(name: str) -> Icon:
+    """
+    Returns an icon from the current icon theme with the given **name**.
+    """
+
+
+class Color:
+    ...
+
+    def __init__(self,
+                 r: int,
+                 g: int,
+                 b: int,
+                 a: int = 255):
+        ...
+
+    r: int
+    g: int
+    b: int
+    a: int
+
+
+def makeGraphemeIcon(grapheme: str,
+                     scalar: float | None = None,
+                     color: Color | None = None) -> Icon:
+    """
+    Returns an icon rendering the given **grapheme**, scaled by **scalar** and colored with **color**.
+    """
+
+
+def makeIconifiedIcon(src: Icon,
+                      color: Color | None = None,
+                      border_radius: float | None = None,
+                      border_width: int | None = None,
+                      border_color: Color | None = None) -> Icon:
+    """
+    Returns an iconified **src**. i.e. drawn in a colored rounded rectangle with a border.
+    **color** specifies the background color, **border_width** the border width in device independent pixels,
+    **border_radius** the relative border radius (0.0 - 1.0), and **border_color** the border color.
+    """
+
+
+
+def makeComposedIcon(src1: Icon,
+                     src2: Icon,
+                     size1: float | None  = None,
+                     size2: float | None  = None,
+                     x1: float | None  = None,
+                     y1: float | None  = None,
+                     x2: float | None  = None,
+                     y2: float | None  = None) -> Icon:
+    """
+    Returns a composed icon of **src1** and **src2**.
+    **size1** and **size2** specify the relative sizes (0.0 - 1.0) of the icons.
+    **x1**, **y1**, **x2**, and **y2** specify the relative positions (0.0 - 1.0, 0.5 is centered) of the icons.
+    """
+
+
 class Item(ABC):
     """
-    See also:
-        `Item C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Item.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Item.html>`_
     """
 
     @abstractmethod
@@ -345,12 +527,9 @@ class Item(ABC):
         """
 
     @abstractmethod
-    def iconUrls(self) -> List[str]:
+    def icon(self) -> Icon:
         """
-        Returns the item icon URLs.
-
-        See also:
-             `pixmapFromUrl() C++ Reference <https://albertlauncher.github.io/reference/namespacealbert.html#ab33e1e7fab94ddf6b1b7f4683577602c>`_
+        Creates and returns an item icon on demand.
         """
 
     @abstractmethod
@@ -362,19 +541,35 @@ class Item(ABC):
 
 class StandardItem(Item):
     """
-    A property based implementation of the ``Item`` interface.
-
-    See also:
-        `StandardItem C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1StandardItem.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1util_1_1StandardItem.html>`_
     """
 
     def __init__(self,
-                 id: str = '',
-                 text: str = '',
-                 subtext: str = '',
-                 inputActionText: Optional[str] = '',
-                 iconUrls: List[str] = [],
-                 actions: List[Action] = []):
+                 id: str | None = None,
+                 text: str | None = None,
+                 subtext: str | None = None,
+                 icon_factory: Callable[[], Icon] | None = None,
+                 actions: List[Action] | None = None,
+                 input_action_text: str | None = None
+                 ):
+        ...
+
+    def id(self) -> str:
+        ...
+
+    def text(self) -> str:
+        ...
+
+    def subtext(self) -> str:
+        ...
+
+    def inputActionText(self) -> str:
+        ...
+
+    def icon(self) -> Icon:
+        ...
+
+    def actions(self) -> List[Action]:
         ...
 
     id: str
@@ -392,17 +587,9 @@ class StandardItem(Item):
     The item subtext.
     """
 
-    inputActionText: str
+    icon_factory: Callable[[], Icon]
     """
-    The item input action text.
-    """
-
-    iconUrls: List[str]
-    """
-    The item icon URLs.
-
-    See also:
-         `pixmapFromUrl() C++ Reference <https://albertlauncher.github.io/reference/namespacealbert.html#ab33e1e7fab94ddf6b1b7f4683577602c>`_
+    The item icon.
     """
 
     actions: List[Action]
@@ -410,11 +597,15 @@ class StandardItem(Item):
     The item actions.
     """
 
+    input_action_text: str
+    """
+    The item input action text.
+    """
+
 
 class Query:
     """
-    See also:
-        `Query C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Query.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Query.html>`_
     """
 
     @property
@@ -438,22 +629,21 @@ class Query:
     @overload
     def add(self, item: Item):
         """
-        Adds ``item`` to the query results.
+        Adds **item** to the query results.
 
         Use list add if you can to avoid expensive locking and UI flicker.
         """
 
     @overload
-    def add(self, item: List[Item]):
+    def add(self, items: List[Item]):
         """
-        Adds ``items`` to the query results.
+        Adds **items** to the query results.
         """
 
 
 class MatchConfig:
     """
-    See also:
-        `MatchConfig C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1MatchConfig.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1util_1_1MatchConfig.html>`_
     """
 
     def __init__(self,
@@ -463,8 +653,8 @@ class MatchConfig:
                  ignore_diacritics: bool = True,
                  separator_regex: str = "[\s\\\/\-\[\](){}#!?<>\"'=+*.:,;_]+"):
         """
-        Constructs a ``MatchConfig`` initialized with the values of ``fuzzy``, ``ignore_case``,
-        ``ignore_diacritics``, ``ignore_word_order`` and ``separator_regex``. All parameters are
+        Constructs a ``MatchConfig`` initialized with the values of **fuzzy**, **ignore_case**,
+        **ignore_diacritics*, **ignore_word_order** and **separator_regex**. All parameters are
         optional.
         """
 
@@ -494,42 +684,9 @@ class MatchConfig:
     """
 
 
-class Matcher:
-    """
-    See also:
-        `Matcher C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Matcher.html>`_
-    """
-
-    def __init__(self,
-                 string: str,
-                 config: MatchConfig = MatchConfig()):
-        """
-        Constructs a ``Matcher`` for the given ``string`` and ``config``.
-        """
-
-    @overload
-    def match(self, string: str) -> Match:
-        """
-        Returns a ``Match`` for the ``string``.
-        """
-
-    @overload
-    def match(self, strings: List[str]) -> Match:
-        """
-        Returns the best ``Match`` for the ``strings``.
-        """
-
-    @overload
-    def match(self, *args: str) -> Match:
-        """
-        Returns the best ``Match`` for the ``args``.
-        """
-
-
 class Match:
     """
-    See also:
-        `Match C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Match.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1util_1_1Match.html>`_
     """
 
     def score(self) -> float:
@@ -562,10 +719,41 @@ class Match:
         Converts the match to ``float`` using ``score()``.
         """
 
+
+class Matcher:
+    """
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1util_1_1Matcher.html>`_
+    """
+
+    def __init__(self,
+                 string: str,
+                 config: MatchConfig = MatchConfig()):
+        """
+        Constructs a ``Matcher`` for the given **string** and **config**.
+        """
+
+    @overload
+    def match(self, string: str) -> Match:
+        """
+        Returns a ``Match`` for the **string**.
+        """
+
+    @overload
+    def match(self, strings: List[str]) -> Match:
+        """
+        Returns the best ``Match`` for the **strings**.
+        """
+
+    @overload
+    def match(self, *args: str) -> Match:
+        """
+        Returns the best ``Match`` for the **args**.
+        """
+
+
 class Extension(ABC):
     """
-    See also:
-        `Extension C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Extension.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1Extension.html>`_
     """
 
     @abstractmethod
@@ -589,63 +777,56 @@ class Extension(ABC):
 
 class TriggerQueryHandler(Extension):
     """
-    See also:
-        `TriggerQueryHandler C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1TriggerQueryHandler.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1TriggerQueryHandler.html>`_
     """
 
     def synopsis(self, query: str) -> str:
         """
-        Returns the input hint to be displayed on empty query.
-
+        Returns the input hint for the given **query**.
+        The returned string will be displayed in the input line if space permits.
         The base class implementation returns an empty string.
         """
 
     def allowTriggerRemap(self) -> bool:
         """
         Returns ``True`` if the user is allowed to set a custom trigger, otherwise returns ``False``.
-
         The base class implementation returns ``True``.
         """
 
     def defaultTrigger(self) -> str:
         """
         Returns the default trigger.
+        The base class implementation returns ``Extension.id`` with a space appended.
+        """
 
-        The base class implementation returns an empty string.
+    def setTrigger(self, trigger: str):
+        """
+        Notifies that the user-defined trigger has changed to **trigger**.
+        The base class implementation does nothing.
         """
 
     def supportsFuzzyMatching(self) -> bool:
         """
         Returns ``True`` if the handler supports error tolerant matching, otherwise returns ``False``.
-
         The base class implementation returns ``False``.
-        """
-
-    def setTrigger(self, trigger: str):
-        """
-        Notifies about changes to the user defined ``trigger`` used to call the handler.
-
-        The base class implementation does nothing.
         """
 
     def setFuzzyMatching(self, enabled: bool):
         """
-        Sets the fuzzy matching mode to ``enabled``.
-
+        Sets the fuzzy matching mode to **enabled**.
         The base class implementation does nothing.
         """
 
     @abstractmethod
     def handleTriggerQuery(self, query: Query):
         """
-        Handles the triggered ``query``.
+        Handles the triggered **query**.
         """
 
 
 class RankItem:
     """
-    See also:
-        `RankItem C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1RankItem.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1RankItem.html>`_
     """
 
     def __init__(self,
@@ -653,34 +834,29 @@ class RankItem:
                  score: float|Match):
         ...
 
-    item: Item
-    score: float
-
 
 class GlobalQueryHandler(TriggerQueryHandler):
     """
-    See also:
-        `GlobalQueryHandler C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1GlobalQueryHandler.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1GlobalQueryHandler.html>`_
     """
 
     def handleTriggerQuery(self, query: Query) -> List[RankItem]:
         """
         Implements ``TriggerQueryHandler.handleTriggerQuery()``.
 
-        Runs ``GlobalQueryHandler.handleGlobalQuery()``, applies usage scores, sorts and adds items to ``query``.
+        Runs ``GlobalQueryHandler.handleGlobalQuery()``, applies usage scores, sorts and adds items to **query**.
         """
 
     @abstractmethod
     def handleGlobalQuery(self, query: Query) -> List[RankItem]:
         """
-        Returns items that match ``query``.
+        Returns items that match **query**.
         """
 
 
 class IndexItem:
     """
-    See also:
-        `IndexItem C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1IndexItem.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1util_1_1IndexItem.html>`_
     """
 
     def __init__(self,
@@ -688,26 +864,34 @@ class IndexItem:
                  string: str):
         ...
 
-    item: Item
-    string: str
-
 
 class IndexQueryHandler(GlobalQueryHandler):
     """
-    See also:
-        `IndexQueryHandler C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1IndexQueryHandler.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1util_1_1IndexQueryHandler.html>`_
     """
+
+    @final
+    def setFuzzyMatching(self, enabled: bool):
+        """
+        Sets the fuzzy matching mode of the internal index to **enabled**.
+        """
+
+    @final
+    def supportsFuzzyMatching(self) -> bool:
+        """
+        Returns ``True``.
+        """
 
     def handleGlobalQuery(self, query: Query) -> List[RankItem]:
         """
         Implements ``GlobalQueryHandler.handleGlobalQuery()``.
 
-        Returns items that match ``query`` using the index.
+        Returns items that match **query** using the index.
         """
 
-    def setIndexItems(self, indexItems: List[IndexItem]):
+    def setIndexItems(self, index_items: List[IndexItem]):
         """
-        Sets the items of the index.
+        Sets the items of the index to **index_items**.
 
         Meant to be called in ``updateIndexItems()``.
         """
@@ -727,21 +911,19 @@ class IndexQueryHandler(GlobalQueryHandler):
 
 class FallbackHandler(Extension):
     """
-    See also:
-        `FallbackHandler C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1FallbackHandler.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1FallbackHandler.html>`_
     """
 
     @abstractmethod
     def fallbacks(self, query: str) -> List[Item]:
         """
-        Returns fallback items for ``query``.
+        Returns fallback items for **query**.
         """
 
 
 class Notification:
     """
-    See also:
-        `Notification C++ Reference <See https://albertlauncher.github.io/reference/classalbert_1_1Notification.html>`_
+    `C++ Reference <https://albertlauncher.github.io/reference/classalbert_1_1util_1_1Notification.html>`_
     """
 
     def __init__(self,
@@ -758,7 +940,6 @@ class Notification:
 
     def dismiss(self):
         ...
-
 
 
 def debug(arg: Any):
@@ -779,6 +960,7 @@ def info(arg: Any):
         This function is not part of the albert module and here for reference only.
         The attribute is attached to the module at load time.
     """
+
 
 def warning(arg: Any):
     """
@@ -802,13 +984,13 @@ def critical(arg: Any):
 
 def setClipboardText(text: str):
     """
-    Sets the system clipboard to ``text``.
+    Sets the system clipboard to **text**.
     """
 
 
 def setClipboardTextAndPaste(text: str):
     """
-    Sets the system clipboard to ``text`` and paste the content to the front-most window.
+    Sets the system clipboard to **text** and paste the content to the front-most window.
 
     Note:
         Requires paste support. Check ``havePasteSupport()`` before using this function.
@@ -826,25 +1008,25 @@ def havePasteSupport() -> bool:
 
 def openUrl(url: str):
     """
-    Opens the URL ``url`` with the default URL handler.
+    Opens the URL **url** with the default URL handler.
     """
 
 
 def openFile(path: str):
     """
-    Opens the file at ``path`` with the default application.
+    Opens the file at **path** with the default application.
     """
 
 
 def runDetachedProcess(cmdln: List[str], workdir: str = '') -> int:
     """
-    Starts the ``commandline`` in a new process, and detaches from it. Returns the PID on success;
-    otherwise returns 0. The process will be started in the directory ``working_dir``. If
-    ``working_dir`` is empty, the working directory is the users home directory.
+    Starts the **cmdln** in a new process, and detaches from it. Returns the PID on success;
+    otherwise returns 0. The process will be started in the directory **workdir**. If
+    **workdir** is empty, the working directory is the users home directory.
     """
 
 
 def runTerminal(script: str):
     """
-    Runs a ``script`` in the users shell and terminal.
+    Runs a **script** in the users shell and terminal.
     """
