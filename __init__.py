@@ -18,7 +18,7 @@ if plugin_dir not in sys.path:
 from mpris_dbus_controller import MPRISDBusController
 
 md_iid = "4.0"
-md_version = "1.1"
+md_version = "1.2"
 md_name = "MPRIS Media Player"
 md_description = "Python plugin to control media players via MPRIS"
 md_license = "MIT"
